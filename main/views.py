@@ -3,14 +3,11 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 import docx
-from docx.oxml.ns import nsdecls
-from docx.oxml import parse_xml
 from docx2pdf import convert
 from pdf2image import convert_from_path
 from docx.enum.text import WD_COLOR_INDEX
 from .serializer import SgsSerializer
 from openpyxl import load_workbook
-# import os
 import img2pdf
 import os
 
@@ -31,7 +28,7 @@ def createSgs(request):
     ws["G5"] = data["country"]
     ws["H5"] = data["vinNumber"]
 
-    wb.save(f"{data['vinNumber']}.xlsx")
+    wb.save("{}.xlsx".format(data['vinNumber']))
 
     document = docx.Document("C:/Users/LENOVO/Desktop/2nd.docx")
     table = document.tables[0]
@@ -73,7 +70,7 @@ def createSgs(request):
     images[0].resize((700, 600))
     images[0].save("first.jpeg", "jpeg")
 
-    with open(f"{data['vinNumber']}.pdf", "wb") as f:
+    with open("{}.pdf".format(data['vinNumber']), "wb") as f:
         f.write(
             img2pdf.convert([i for i in os.listdir(os.curdir) if i.endswith(".jpeg")]))
 
