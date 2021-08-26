@@ -4,15 +4,16 @@ from django.db import models
 
 
 class Sgs(models.Model):
-    exporterCompany = models.CharField(max_length=100, blank=True, null=True)
-    exporterCompanyAddress = models.CharField(max_length=100, blank=True, null=True)
-    contactPerson = models.CharField(max_length=100, blank=True, null=True)
-    email = models.CharField(max_length=100, blank=True, null=True)
-    phone = models.CharField(max_length=100, blank=True, null=True)
-    importerCompany = models.CharField(max_length=100, blank=True, null=True)
-    importCompanyAddress = models.CharField(max_length=100, blank=True, null=True)
-    invoiceNoDate = models.CharField(max_length=100, blank=True, null=True)
-    file = models.FileField()
+    # exporterCompany = models.CharField(max_length=100, blank=True, null=True)
+    # exporterCompanyAddress = models.CharField(max_length=100, blank=True, null=True)
+    # contactPerson = models.CharField(max_length=100, blank=True, null=True)
+    # email = models.CharField(max_length=100, blank=True, null=True)
+    # phone = models.CharField(max_length=100, blank=True, null=True)
+    # importerCompany = models.CharField(max_length=100, blank=True, null=True)
+    # importCompanyAddress = models.CharField(max_length=100, blank=True, null=True)
+    # invoiceNoDate = models.CharField(max_length=100, blank=True, null=True)
+    pdfFile = models.FileField()
+    xlsxFile = models.FileField()
 
     class Meta:
         verbose_name_plural = "Sgs"
