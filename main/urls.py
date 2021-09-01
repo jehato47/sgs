@@ -3,7 +3,7 @@ from .views import *
 
 urlpatterns = [
 
-    path('createsgs', createSgs),
+    path('createsgs', createSgs2),
     # path('createsinglesgs', c)
     path('createxlsx', createXlsx),
     path('sample', sample)

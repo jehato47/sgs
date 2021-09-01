@@ -1,21 +1,17 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-import shutil
-from rest_framework.permissions import IsAuthenticated
 import docx
-from docx2pdf import convert
-from pdf2image import convert_from_path
 from docx.enum.text import WD_COLOR_INDEX
-from .serializer import SgsSerializer
-from .models import Sgs
 from openpyxl import load_workbook
 import img2pdf
-import os
 import convertapi
 import djangoProject1.firebasestr as pyr
+import pdfrw
+import os
+from PIL import Image
+from PyPDF2 import PdfFileWriter, PdfFileReader
 
 os.chdir("media/")
 
@@ -210,6 +206,90 @@ def createSgs(request):
 
     os.remove("{}.pdf".format(data['vinNumber']))
     os.remove(filename)
+
+    return Response(True)
+
+
+def fill_pdf(input_pdf_path, output_pdf_path, data_dict):
+    pdf_template = "sgs.pdf"
+    pdf_output = "output.pdf"
+
+    template_pdf = pdfrw.PdfReader(pdf_template)
+    ANNOT_KEY = '/Annots'
+    ANNOT_FIELD_KEY = '/T'
+    ANNOT_VAL_KEY = '/V'
+    ANNOT_RECT_KEY = '/Rect'
+    SUBTYPE_KEY = '/Subtype'
+    WIDGET_SUBTYPE_KEY = '/Widget'
+
+    template_pdf = pdfrw.PdfReader(input_pdf_path)
+    for page in template_pdf.pages:
+        annotations = page[ANNOT_KEY]
+        for annotation in annotations:
+            template_pdf.Root.AcroForm.update(pdfrw.PdfDict(NeedAppearances=pdfrw.PdfObject('true')))
+
+            if annotation[SUBTYPE_KEY] == WIDGET_SUBTYPE_KEY:
+                if annotation[ANNOT_FIELD_KEY]:
+                    key = annotation[ANNOT_FIELD_KEY][1:-1]
+                    if key in data_dict.keys():
+                        if type(data_dict[key]) == bool:
+                            if data_dict[key] == True:
+                                annotation.update(pdfrw.PdfDict(
+                                    AS=pdfrw.PdfName('Yes')))
+                        else:
+                            annotation.update(
+                                pdfrw.PdfDict(V='{}'.format(data_dict[key]))
+                            )
+                            annotation.update(pdfrw.PdfDict(AP=''))
+
+    template_pdf.Root.AcroForm.update(pdfrw.PdfDict(NeedAppearances=pdfrw.PdfObject('true')))
+    pdfrw.PdfWriter().write(output_pdf_path, template_pdf)
+
+
+@api_view(["POST"])
+def createSgs2(request):
+    data = request.data.dict()
+    file = data['invoice']
+    if os.path.isfile("output.pdf"):
+        os.remove("output.pdf")
+
+    data_dict = {
+        "Exporter_Company Name": data["exporterCompany"],
+        "Exporter_Company Address": data["exporterAddress"],
+        "Exporter_Contact Person": data["contactPerson"],
+        "Exporter_EMail Address": data["email"],
+        "Exporter_Telephone No": data["phone"],
+        "Importer_Company Name": data["importerCompany"],
+        "Importer_Company Address": data["importerAddress"],
+        "Single Shipment": True,
+        " & Date": data["invoiceNoDate"],
+    }
+
+    fill_pdf("sgs.pdf", "output.pdf", data_dict)
+
+    image1 = Image.open(file)
+    im1 = image1.convert('RGB')
+    im1.save("image_pdf.pdf")
+
+    image2 = Image.open("ikinci.jpg")
+    im2 = image2.convert('RGB')
+    im2.save("ikinci.pdf")
+
+    output = PdfFileWriter()
+    pdfOne = PdfFileReader(open("output.pdf", "rb"))
+    pdfThree = PdfFileReader(open("ikinci.pdf", "rb"))
+    pdfTwo = PdfFileReader(open("image_pdf.pdf", "rb"))
+
+    output.addPage(pdfOne.getPage(0))
+    output.addPage(pdfThree.getPage(0))
+    output.addPage(pdfTwo.getPage(0))
+
+    outputStream = open("output12.pdf", "wb")
+    output.write(outputStream)
+    outputStream.close()
+
+    pyr.upload("{}/{}.pdf".format(data['vinNumber'], data['vinNumber']), "output12.pdf")
+
 
     return Response(True)
 
