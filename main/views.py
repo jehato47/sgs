@@ -1,17 +1,18 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-import docx
-from docx.enum.text import WD_COLOR_INDEX
+# from django.core.files.storage import default_storage
+# from django.core.files.base import ContentFile
+# import docx
+# from docx.enum.text import WD_COLOR_INDEX
 from openpyxl import load_workbook
-import img2pdf
-import convertapi
+# # import img2pdf
+# import convertapi
 import djangoProject1.firebasestr as pyr
 import pdfrw
 import os
 from PIL import Image
-from PyPDF2 import PdfFileWriter, PdfFileReader
+# from PyPDF2 import PdfFileWriter, PdfFileReader
+import fitz
 
 os.chdir("media/")
 
@@ -109,8 +110,8 @@ os.chdir("media/")
 
 @api_view(["POST"])
 def createXlsx(request):
-    import pythoncom
-    pythoncom.CoInitialize()
+    # import pythoncom
+    # pythoncom.CoInitialize()
     data = request.data
     data = data.dict()
 
@@ -132,82 +133,82 @@ def createXlsx(request):
     return Response(True)
 
 
-@api_view(["POST"])
-def createSgs(request):
-    data = request.data.dict()
-    file = data['invoice']
-
-    filename = file.name.split(".")
-    filename[-1] = "jpeg"
-    filename = ".".join(filename)
-
-    return Response(True)
-    path = default_storage.save(filename, ContentFile(file.read()))
-
-    # shutil.move(path, "files/{}".format(filename))
-
-    import pythoncom
-    pythoncom.CoInitialize()
-    data = request.data
-    data = data.dict()
-    document = docx.Document("2nd.docx")
-    table = document.tables[0]
-
-    # company name
-    table.column_cells(13)[7].text = data["exporterCompany"]
-
-    # adress
-    table.column_cells(13)[8].text = data["exporterAddress"]
-
-    # contact person
-    table.column_cells(13)[9].text = data["contactPerson"]
-
-    # email
-    table.column_cells(13)[10].text = data["email"]
-
-    # telephone no
-    table.column_cells(13)[11].text = data["phone"]
-
-    # Importer ***
-    # Company Name
-    table.column_cells(14)[7].text = data["importerCompany"]
-
-    # Address
-    table.column_cells(14)[8].text = data["importerAddress"]
-
-    # Invoice no / date
-    table.column_cells(20)[13].text = data["invoiceNoDate"]
-    table.column_cells(20)[13].paragraphs[0].runs[0].font.highlight_color = WD_COLOR_INDEX.YELLOW
-
-    # shading_elm_1 = parse_xml(r'<w:shd {} w:fill="faff00"/>'.format(nsdecls('w')))
-    # table.column_cells(20)[13]._tc.get_or_add_tcPr().append(shading_elm_1)
-
-    document.tables[0] = table
-    document.save("doc.docx")
-
-    convertapi.api_secret = 'gKDNm1UdZ94tL5zI'  # eski
-    # convertapi.api_secret = '9R7pyBfJESrq7tJ1'  # yeni
-    files = convertapi.convert('png', {
-        'File': 'doc.docx',
-    }, from_format='docx').save_files('.')
-    my_file = 'doc.png'
-    base = os.path.splitext(my_file)[0]
-    os.rename(my_file, base + '.jpeg')
-
-    with open("{}.pdf".format(data['vinNumber']), "wb") as f:
-        f.write(
-            img2pdf.convert([i for i in os.listdir(os.curdir) if i.endswith(".jpeg")]))
-
-    os.remove("doc.docx")
-    os.remove("doc.jpeg")
-    os.remove("doc-2.png")
-
-    pyr.upload("{}/{}.pdf".format(data['vinNumber'], data['vinNumber']), "{}.pdf".format(data['vinNumber']))
-
-    os.remove("{}.pdf".format(data['vinNumber']))
-    os.remove(filename)
-
-    return Response(True)
+# @api_view(["POST"])
+# def createSgs(request):
+#     data = request.data.dict()
+#     file = data['invoice']
+#
+#     filename = file.name.split(".")
+#     filename[-1] = "jpeg"
+#     filename = ".".join(filename)
+#
+#     return Response(True)
+#     path = default_storage.save(filename, ContentFile(file.read()))
+#
+#     # shutil.move(path, "files/{}".format(filename))
+#
+#     import pythoncom
+#     pythoncom.CoInitialize()
+#     data = request.data
+#     data = data.dict()
+#     document = docx.Document("2nd.docx")
+#     table = document.tables[0]
+#
+#     # company name
+#     table.column_cells(13)[7].text = data["exporterCompany"]
+#
+#     # adress
+#     table.column_cells(13)[8].text = data["exporterAddress"]
+#
+#     # contact person
+#     table.column_cells(13)[9].text = data["contactPerson"]
+#
+#     # email
+#     table.column_cells(13)[10].text = data["email"]
+#
+#     # telephone no
+#     table.column_cells(13)[11].text = data["phone"]
+#
+#     # Importer ***
+#     # Company Name
+#     table.column_cells(14)[7].text = data["importerCompany"]
+#
+#     # Address
+#     table.column_cells(14)[8].text = data["importerAddress"]
+#
+#     # Invoice no / date
+#     table.column_cells(20)[13].text = data["invoiceNoDate"]
+#     table.column_cells(20)[13].paragraphs[0].runs[0].font.highlight_color = WD_COLOR_INDEX.YELLOW
+#
+#     # shading_elm_1 = parse_xml(r'<w:shd {} w:fill="faff00"/>'.format(nsdecls('w')))
+#     # table.column_cells(20)[13]._tc.get_or_add_tcPr().append(shading_elm_1)
+#
+#     document.tables[0] = table
+#     document.save("doc.docx")
+#
+#     convertapi.api_secret = 'gKDNm1UdZ94tL5zI'  # eski
+#     # convertapi.api_secret = '9R7pyBfJESrq7tJ1'  # yeni
+#     files = convertapi.convert('png', {
+#         'File': 'doc.docx',
+#     }, from_format='docx').save_files('.')
+#     my_file = 'doc.png'
+#     base = os.path.splitext(my_file)[0]
+#     os.rename(my_file, base + '.jpeg')
+#
+#     with open("{}.pdf".format(data['vinNumber']), "wb") as f:
+#         f.write(
+#             img2pdf.convert([i for i in os.listdir(os.curdir) if i.endswith(".jpeg")]))
+#
+#     os.remove("doc.docx")
+#     os.remove("doc.jpeg")
+#     os.remove("doc-2.png")
+#
+#     pyr.upload("{}/{}.pdf".format(data['vinNumber'], data['vinNumber']), "{}.pdf".format(data['vinNumber']))
+#
+#     os.remove("{}.pdf".format(data['vinNumber']))
+#     os.remove(filename)
+#
+#     return Response(True)
 
 
 def fill_pdf(input_pdf_path, output_pdf_path, data_dict):
@@ -249,9 +250,11 @@ def fill_pdf(input_pdf_path, output_pdf_path, data_dict):
 @api_view(["POST"])
 def createSgs2(request):
     data = request.data.dict()
+    print(data["type"] == "Kendal Deniz")
+    # return Response(True)
     file = data['invoice']
-    if os.path.isfile("output.pdf"):
-        os.remove("output.pdf")
+    # if os.path.isfile("output.pdf"):
+    #     os.remove("output.pdf")
 
     data_dict = {
         "Exporter_Company Name": data["exporterCompany"],
@@ -271,25 +274,29 @@ def createSgs2(request):
     im1 = image1.convert('RGB')
     im1.save("image_pdf.pdf")
 
-    image2 = Image.open("ikinci.jpg")
-    im2 = image2.convert('RGB')
-    im2.save("ikinci.pdf")
+    if data["type"] == "Kendal Deniz":
+        image2 = Image.open("ikinci.jpg")
+        im2 = image2.convert('RGB')
+        im2.save("ikinci.pdf")
+    else:
+        image2 = Image.open("yeni.jpg")
+        im2 = image2.convert('RGB')
+        im2.save("ikinci.pdf")
 
-    output = PdfFileWriter()
-    pdfOne = PdfFileReader(open("output.pdf", "rb"))
-    pdfThree = PdfFileReader(open("ikinci.pdf", "rb"))
-    pdfTwo = PdfFileReader(open("image_pdf.pdf", "rb"))
+    original_pdf_path = "output.pdf"
+    extra_page_path = "ikinci.pdf"
+    extra_page_path2 = "image_pdf.pdf"
+    output_file_path = "example-extended.pdf"
 
-    output.addPage(pdfOne.getPage(0))
-    output.addPage(pdfThree.getPage(0))
-    output.addPage(pdfTwo.getPage(0))
+    original_pdf = fitz.open(original_pdf_path)
+    extra_page = fitz.open(extra_page_path)
+    extra_page2 = fitz.open(extra_page_path2)
 
-    outputStream = open("output12.pdf", "wb")
-    output.write(outputStream)
-    outputStream.close()
+    original_pdf.insertPDF(extra_page)
+    original_pdf.insertPDF(extra_page2)
+    original_pdf.save(output_file_path)
 
-    pyr.upload("{}/{}.pdf".format(data['vinNumber'], data['vinNumber']), "output12.pdf")
-
+    pyr.upload("{}/{}.pdf".format(data['vinNumber'], data['vinNumber']), "example-extended.pdf")
 
     return Response(True)
 
